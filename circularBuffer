@@ -1,0 +1,112 @@
+#include "circularBuffer.h"
+
+template<class T>
+void CircularBuffer<T>::resetBuffer()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+	head_ = tail_;
+	isbufferfull_ = false;
+}
+
+template<class T>
+bool CircularBuffer<T>::isBufferEmpty() const
+{
+    return (!isbufferfull_ && (head_ == tail_));
+}
+
+template<class T>
+bool CircularBuffer<T>::isBufferFull() const
+{
+    return isbufferfull_;
+}
+
+template<class T>
+size_t CircularBuffer<T>::bufferCapacity() const
+{
+    return max_size_;
+}
+
+template<class T>
+size_t CircularBuffer<T>::bufferSize() const
+{
+    size_t size = max_size_;
+
+	if(!full_)
+	{
+		if(head_ >= tail_)
+		{
+			size = head_ - tail_;
+		}
+		else
+		{
+			size = max_size_ + head_ - tail_;
+		}
+	}
+
+	return size;
+}
+
+template<class T>
+void CircularBuffer<T>::writeBytesToBuffer(T bytes)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+	buffer_[head_] = bytes;
+
+	if(isbufferfull_)
+	{
+		tail_ = (tail_ + 1) % max_size_;
+	}
+
+	head_ = (head_ + 1) % max_size_;
+
+	isbufferfull_ = head_ == tail_;
+}
+
+template<class T>
+T CircularBuffer<T>::readBytesFromBuffer()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+	if(isBufferEmpty())
+	{
+		throw std::runtime_error("buffer is empty");;
+	}
+
+	auto val = buffer_[tail_];
+	isbufferfull_ = false;
+	tail_ = (tail_ + 1) % max_size_;
+
+	return val;
+}
+
+template<class T>
+bool CircularBuffer<T>::readBytesFromFile(const std::string filename, T& bytes)
+{
+    std::ifstream in(filename.c_str(), ios::in);
+    if(!in)
+    {
+        std::cerr << "Cannot Open File: " << filename << std::endl;
+        return false;
+    }
+
+    std::getline(in, bytes);
+    in.close();
+    return true;
+    
+}
+
+template<class T>
+bool CircularBuffer<T>::writeBytesToFile(const std::string filename, const T& bytes)
+{
+    std::ofstream out(filename.c_str(), ios::out);
+    if(!out)
+    {
+        std::cout << "Cannot open file: " << filename << std::endl;
+        return false;
+    }
+
+    out << bytes;
+    out.close();
+    return true;
+}
