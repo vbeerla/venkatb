@@ -1,0 +1,76 @@
+#include "circularBuffer.h"
+
+int testFunction()
+{
+    std::string dataFromFile{};
+    CircularBuffer<std::string> data(256);
+    if((data.readBytesFromFile("inputFile.txt", dataFromFile) == false))
+    {
+        return -1;
+    }
+    data.writeBytesToBuffer(dataFromFile);
+    std::string outputData = data.readBytesFromBuffer();
+    data.writeBytesToFile("outputFile.txt", outputData);
+    
+}
+
+int main(void)
+{
+	CircularBuffer<uint32_t> circle(10);
+	std::cout << "Size: " << circle.bufferSize() << " Capacity: " << circle.bufferCapacity() << std::endl;
+
+	uint32_t x = 1;
+	std::cout << "Push val: " << x << std::endl;
+	circle.writeBytesToBuffer(x);
+
+	x = circle.readBytesFromBuffer();
+	std::cout << "Popped: " << x << std::endl;
+
+	std::cout << "Empty: " << circle.isBufferEmpty() << std::endl;
+
+	std::cout << "Adding " << circle.bufferCapacity() - 1 << " values" << std::endl;
+	for(uint32_t i = 0; i < circle.bufferCapacity() - 1; i++)
+	{
+		circle.writeBytesToBuffer(i);
+	}
+
+	circle.resetBuffer();
+
+	std::cout << "Full: " << circle.isBufferFull();
+
+	std::cout << "Adding " << circle.bufferCapacity() << "values" << std::endl;
+	for(uint32_t i = 0; i < circle.bufferCapacity(); i++)
+	{
+		circle.writeBytesToBuffer(i);
+	}
+
+	std::cout << "Full: " << circle.isBufferFull();
+
+	std::cout << "Reading back values: ";
+	while(!circle.isBufferEmpty())
+	{
+		std::cout << circle.readBytesFromBuffer();
+	}
+
+	std::cout << "Adding 15 values" << std::endl;
+	for(uint32_t i = 0; i < circle.bufferSize() + 5; i++)
+	{
+		circle.writeBytesToBuffer(i);
+	}
+
+	std::cout << "Full: " << circle.isBufferFull() << std::endl;
+
+	std::cout << "Reading back values: ";
+	while(!circle.isBufferEmpty())
+	{
+		std::cout << circle.readBytesFromBuffer();
+	}
+	std::cout << std::endl;
+
+	std::cout << "Empty: " << circle.isBufferEmpty() << std::endl;
+	std::cout << "Full: " << circle.isBufferFull() << std::endl;
+
+    //This is used as per the Test Example
+    testFunction();
+	return 0;
+}
